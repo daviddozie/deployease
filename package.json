@@ -1,0 +1,33 @@
+{
+  "name": "deployease",
+  "version": "1.0.0",
+  "main": "bin/deployease.js",
+  "scripts": {
+    "start": "node ./bin/deployease.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "deploy",
+    "cli",
+    "frontend",
+    "netlify",
+    "vercel",
+    "firebase"
+  ],
+  "author": "David Mgbede",
+  "license": "MIT",
+  "description": "A CLI tool to easily deploy frontend apps to Netlify, Vercel, and Firebase.",
+  "dependencies": {
+    "commander": "^13.1.0",
+    "dotenv": "^16.4.7",
+    "firebase-tools": "^13.31.1",
+    "inquirer": "^12.4.2",
+    "netlify-cli": "^18.1.0",
+    "shelljs": "^0.8.5",
+    "vercel": "^41.1.4"
+  },
+  "bin": {
+    "deployease": "bin/deployease.js"
+  },
+  "devDependencies": {}
+}
