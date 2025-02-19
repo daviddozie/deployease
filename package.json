@@ -1,6 +1,6 @@
 {
   "name": "deployease",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "main": "bin/deployease.js",
   "scripts": {
     "start": "node ./bin/deployease.js",
@@ -19,7 +19,6 @@
   "description": "A CLI tool to easily deploy frontend apps to Netlify, Vercel, and Firebase.",
   "dependencies": {
     "commander": "^13.1.0",
-    "dotenv": "^16.4.7",
     "firebase-tools": "^13.31.1",
     "inquirer": "^12.4.2",
     "netlify-cli": "^18.1.0",
@@ -28,6 +27,5 @@
   },
   "bin": {
     "deployease": "bin/deployease.js"
-  },
-  "devDependencies": {}
+  }
 }

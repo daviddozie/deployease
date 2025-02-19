@@ -1,15 +1,13 @@
 #!/usr/bin/env node
 const { program } = require('commander');
-const { exec } = require('shelljs');
+const { execSync } = require('child_process');
+execSync('vercel deploy --prod --yes', { stdio: 'inherit' });
 const fs = require('fs');
-const dotenv = require('dotenv');
 
-dotenv.config();
-
-// Setting the CLI version and description
+// CLI version
 program.version('1.0.0').description('DeployEase - Deploy frontend Apps Easily');
 
-// Function to detect the deployment platform
+// Detect the deployment platform
 function detectPlatform() {
     if (fs.existsSync('netlify.toml')) return 'netlify';
     if (fs.existsSync('vercel.json')) return 'vercel';
@@ -17,32 +15,32 @@ function detectPlatform() {
     return 'vercel'; // Default to Vercel
 }
 
-// Deploy Command
-program
-    .command('deploy')
+// Deploy command
+program.command('deploy')
     .description('Deploy your frontend project automatically')
     .action(() => {
         const platform = detectPlatform();
         console.log(`🚀 Deploying to ${platform}...`);
 
-        if (platform === 'netlify') {
-            exec('netlify deploy --prod');
-        } else if (platform === 'vercel') {
-            exec('vercel deploy --prod --yes');
-        } else if (platform === 'firebase') {
-            exec('firebase deploy');
+        const commands = {
+            netlify: 'netlify deploy --prod',
+            vercel: 'vercel deploy --prod --yes',
+            firebase: 'firebase deploy'
+        };
+
+        if (commands[platform]) {
+            execSync(commands[platform], { stdio: 'inherit' });
         } else {
-            console.log('❌ Unsupported platform detected. Please ensure you have the correct configuration.');
+            console.log('❌ Unsupported platform detected. Please check your config.');
         }
     });
 
 // List deployed projects
-program
-    .command('list-projects')
+program.command('list-projects')
     .description('List deployed projects from Netlify, Vercel, or Firebase')
     .action(() => {
         console.log('📄 Fetching deployed projects...');
-        exec('netlify sites:list || vercel ls || firebase projects:list');
+        execSync('netlify sites:list || vercel ls || firebase projects:list', { stdio: 'inherit' });
     });
 
 // Parse CLI arguments
