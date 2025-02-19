@@ -1,6 +1,6 @@
 # DeployEase - Deploy Frontend Apps Easily 🚀
 
-DeployEase is a CLI tool that simplifies the deployment of frontend applications to platforms like **Netlify, Vercel, and Firebase**.
+DeployEase is a CLI tool that simplifies the deployment of frontend applications to multiple free hosting platforms.
 
 ## Installation
 
@@ -10,14 +10,17 @@ To install DeployEase globally, run:
 ```sh
 npm install -g deployease
 ```
+
 ### **Using yarn**
 ```sh
 yarn global add deployease
 ```
+
 ### **Using pnpm**
 ```sh
 pnpm add -g deployease
 ```
+
 ### **Using bun**
 ```sh
 bun add -g deployease
@@ -33,57 +36,66 @@ deployease deploy
 
 ### Deployment Platforms
 
-DeployEase supports **Netlify**, **Vercel**, and **Firebase**. It automatically detects the correct platform if a configuration file exists (e.g., `netlify.toml`, `vercel.json`, or `firebase.json`). If no platform is detected, it defaults to **Vercel**.
+DeployEase supports the following free hosting platforms:
+
+- **Netlify**
+- **Vercel**
+- **Firebase**
+- **GitHub Pages**
+- **Cloudflare Pages**
+- **Render**
+- **Surge.sh**
 
 #### **Important: Project Name Format**
 - Project names must be **lowercase**.
-- Avoid special characters except `.` `_` `-`.
+- Avoid special characters except `.`, `_`, and `-`.
 - Names **cannot** contain `---` (triple hyphens).
 - If your project folder is **uppercase**, rename it before deploying.
 
-#### Deploy to Netlify
+### **Deploying Your Project**
 
-Simply run:
+When you run:
+
 ```sh
 deployease deploy
 ```
-If Netlify is detected, it will automatically deploy. Otherwise, specify it manually:
-```sh
-deployease deploy --platform netlify
-```
-If the Netlify CLI is not installed, DeployEase will install it automatically.
 
-#### Deploy to Vercel
+If a configuration file is detected (`netlify.toml`, `vercel.json`, `firebase.json`, etc.), DeployEase will automatically deploy to the corresponding platform.
 
-Run:
+If no configuration file is found, you will be prompted to choose a platform:
+
 ```sh
-deployease deploy
+Select a deployment platform:
+1. Netlify
+2. Vercel
+3. Firebase
+4. GitHub Pages
+5. Cloudflare Pages
+6. Render
+7. Surge.sh
 ```
-DeployEase will detect and deploy to Vercel if a `vercel.json` file exists. Otherwise, specify it manually:
+
+After selection, deployment will start immediately.
+
+### **Manual Deployment**
+
+To specify a platform manually, use:
+
+```sh
+deployease deploy --platform <platform-name>
+```
+
+For example:
 ```sh
 deployease deploy --platform vercel
 ```
-If the Vercel CLI is missing, DeployEase will install it automatically.
 
-#### Deploy to Firebase
-
-Run:
-```sh
-deployease deploy
-```
-If Firebase is detected, it will deploy automatically. Otherwise, specify it manually:
-```sh
-deployease deploy --platform firebase
-```
-If the Firebase CLI is missing, DeployEase will install it automatically.
-
-## Listing Deployed Projects
+### **Listing Deployed Projects**
 
 To view deployed projects across all platforms, run:
 ```sh
 deployease list-projects
 ```
-This will fetch a list of deployed projects from **Netlify, Vercel, and Firebase**.
 
 ## Contributing
 
