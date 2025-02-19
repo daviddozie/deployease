@@ -8,11 +8,11 @@ To install DeployEase globally, run:
 
 ### **Using npm**
 ```sh
-npm install -g deployease --prefer-offline --no-audit --no-fund
+npm install -g deployease
 ```
 ### **Using yarn**
 ```sh
-yarn global add deployease --prefer-offline
+yarn global add deployease
 ```
 ### **Using pnpm**
 ```sh
@@ -84,12 +84,6 @@ To view deployed projects across all platforms, run:
 deployease list-projects
 ```
 This will fetch a list of deployed projects from **Netlify, Vercel, and Firebase**.
-
-## How to Speed Up Deployment
-- Use `--prefer-offline` when installing to reduce network delays.
-- Ensure your project name is lowercase to prevent deployment errors.
-- Use `deployease deploy --yes` to skip confirmation prompts.
-- Install the respective CLI tools (`netlify-cli`, `vercel`, `firebase-tools`) globally for even faster deployments.
 
 ## Contributing
 
