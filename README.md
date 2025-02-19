@@ -8,7 +8,7 @@ To install DeployEase globally, run:
 
 ### **Using npm**
 ```sh
-npm install -g deployease
+npm install -D deployease
 ```
 
 ### **Using yarn**
@@ -18,12 +18,12 @@ yarn global add deployease
 
 ### **Using pnpm**
 ```sh
-pnpm add -g deployease
+pnpm add -D deployease
 ```
 
 ### **Using bun**
 ```sh
-bun add -g deployease
+bun add -D deployease
 ```
 
 ## Usage
