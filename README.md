@@ -52,11 +52,7 @@ DeployEase supports **Netlify**, **Vercel**, and **Firebase**. You can specify t
    ```sh
    vercel login
    ```
-3. **Run Vercel**:
-   ```sh
-   vercel
-   ```
-4. **Run the deploy command**:
+3. **Run the deploy command**:
    ```sh
    vercel --project name
    ```
