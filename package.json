@@ -1,6 +1,6 @@
 {
   "name": "deployease",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "main": "bin/deployease.js",
   "scripts": {
     "start": "node ./bin/deployease.js",

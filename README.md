@@ -33,80 +33,50 @@ deployease deploy
 
 ### Deployment Platforms
 
-DeployEase supports **Netlify**, **Vercel**, and **Firebase**. You can specify the platform as an option or select it interactively.
+DeployEase supports **Netlify**, **Vercel**, and **Firebase**. It automatically detects the correct platform if a configuration file exists (e.g., `netlify.toml`, `vercel.json`, or `firebase.json`). If no platform is detected, you can specify it manually or select it interactively.
 
 #### Deploy to Netlify
 
-1. **Ensure you have the Netlify CLI installed**:
-   ```sh
-   npm install -g netlify-cli
-   ```
-2. **Login to Netlify**:
-   ```sh
-   netlify login
-   ```
-3. **Run the deploy command**:
-   ```sh
-   deployease deploy --platform netlify
-   ```
-   Or interactively:
-   ```sh
-   deployease deploy
-   ```
-   Then select **Netlify** from the prompt.
+Simply run:
+```sh
+deployease deploy
+```
+If Netlify is detected, it will automatically deploy. Otherwise, you can specify manually:
+```sh
+deployease deploy --platform netlify
+```
+If the Netlify CLI is not installed, DeployEase will install it automatically.
 
 #### Deploy to Vercel
 
-1. **Ensure you have the Vercel CLI installed**:
-   ```sh
-   npm install -g vercel
-   ```
-2. **Login to Vercel**:
-   ```sh
-   vercel login
-   ```
-3. **Run the deploy command**:
-   ```sh
-   vercel --project name
-   ```
-   Or interactively:
-   ```sh
-   deployease deploy
-   ```
-   Then select **Vercel** from the prompt.
+Run:
+```sh
+deployease deploy
+```
+DeployEase will detect and deploy to Vercel if a `vercel.json` file exists. Otherwise, specify it manually:
+```sh
+deployease deploy --platform vercel
+```
+If the Vercel CLI is missing, DeployEase will install it automatically.
 
 #### Deploy to Firebase
 
-1. **Ensure you have Firebase CLI installed**:
-   ```sh
-   npm install -g firebase-tools
-   ```
-2. **Login to Firebase**:
-   ```sh
-   firebase login
-   ```
-3. **Initialize Firebase in your project (if not already done)**:
-   ```sh
-   firebase init
-   ```
-4. **Run the deploy command**:
-   ```sh
-   deployease deploy --platform firebase
-   ```
-   Or interactively:
-   ```sh
-   deployease deploy
-   ```
-   Then select **Firebase** from the prompt.
+Run:
+```sh
+deployease deploy
+```
+If Firebase is detected, it will deploy automatically. Otherwise, specify it manually:
+```sh
+deployease deploy --platform firebase
+```
+If the Firebase CLI is missing, DeployEase will install it automatically.
 
 ## Listing Deployed Projects
 
 To view deployed projects across all platforms, run:
-
 ```sh
 deployease list-projects
 ```
-
 This will fetch a list of deployed projects from **Netlify, Vercel, and Firebase**.
 
 ## Contributing
