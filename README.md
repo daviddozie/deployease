@@ -6,8 +6,21 @@ DeployEase is a CLI tool that simplifies the deployment of frontend applications
 
 To install DeployEase globally, run:
 
+### **Using npm**
 ```sh
 npm install -g deployease
+```
+### **Using yarn**
+```sh
+yarn global add deployease
+```
+### **Using pnpm**
+```sh
+pnpm add -g deployease
+```
+### **Using bun**
+```sh
+bun add -g deployease
 ```
 
 ## Usage
