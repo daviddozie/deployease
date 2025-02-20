@@ -2,9 +2,44 @@
 
 const { execSync } = require("child_process");
 const fs = require("fs");
-const readline = require("readline-sync");
 
-// Function to detect available platforms
+//This line ensure readline-sync is installed before requiring it
+function ensureReadlineSync() {
+    try {
+        require.resolve("readline-sync");
+    } catch (e) {
+        console.log("\n⚙️ Installing readline-sync...");
+        execSync("npm install readline-sync", { stdio: "inherit" });
+        console.log("✅ readline-sync installed successfully!\n");
+    }
+    global.readline = require("readline-sync");
+}
+
+ensureReadlineSync();
+
+//this function to checks if a CLI tool is installed
+function isCLIInstalled(command) {
+    try {
+        execSync(`${command} --version`, { stdio: "ignore" });
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+//This function installs a CLI tool if missing
+function installCLI(tool) {
+    console.log(`\n⚙️ Installing ${tool} CLI...`);
+    try {
+        execSync(`npm install -g ${tool}`, { stdio: "inherit" });
+        console.log(`✅ ${tool} installed successfully!\n`);
+    } catch (error) {
+        console.error(`❌ Failed to install ${tool} globally. Trying with npx...`);
+        global.useNpx = true;
+    }
+}
+
+//This function detects available platforms
 function detectPlatform() {
     if (fs.existsSync("netlify.toml")) return "netlify";
     if (fs.existsSync("vercel.json")) return "vercel";
@@ -17,7 +52,7 @@ function detectPlatform() {
     return null;
 }
 
-// Function to prompt user for platform selection
+//This function prompts the user for platform selection
 function selectPlatform() {
     console.log("\n📢 Select a deployment platform:");
     console.log("1. Netlify");
@@ -29,8 +64,8 @@ function selectPlatform() {
     console.log("7. Surge.sh");
     console.log("8. Railway");
     console.log("9. Koyeb");
-    
-    const choice = readline.question("\nEnter the number of your choice: ").trim();
+
+    const choice = global.readline.question("\nEnter the number of your choice: ").trim();
 
     switch (choice) {
         case "1": return "netlify";
@@ -48,44 +83,61 @@ function selectPlatform() {
     }
 }
 
-// Function to deploy based on selected platform
+//This function deploys based on selected platform
 function deploy() {
     let platform = detectPlatform();
     if (!platform) {
-        platform = selectPlatform(); // Prompt user if no config is detected
+        platform = selectPlatform();
     }
 
     console.log(`\n🚀 Deploying to ${platform}...\n`);
 
+    // This ensures the required CLI tool is installed before deployment
+    const cliCommands = {
+        "netlify": "netlify",
+        "vercel": "vercel",
+        "firebase": "firebase",
+        "cloudflare": "wrangler",
+        "surge": "surge",
+        "railway": "railway",
+        "koyeb": "koyeb"
+    };
+
+    if (cliCommands[platform] && !isCLIInstalled(cliCommands[platform])) {
+        installCLI(cliCommands[platform]);
+    }
+
     try {
+        const useNpx = global.useNpx ? "npx " : "";
+
         switch (platform) {
             case "netlify":
-                execSync("netlify deploy --prod", { stdio: "inherit" });
+                execSync(`${useNpx}netlify deploy --prod`, { stdio: "inherit" });
                 break;
             case "vercel":
-                execSync("vercel deploy --prod --yes", { stdio: "inherit" });
+                execSync(`${useNpx}vercel deploy --prod --yes`, { stdio: "inherit" });
                 break;
             case "firebase":
-                execSync("firebase deploy", { stdio: "inherit" });
+                execSync(`${useNpx}firebase deploy`, { stdio: "inherit" });
                 break;
             case "github":
                 execSync("git push origin main", { stdio: "inherit" });
                 console.log("🎉 GitHub Pages will auto-deploy your project.");
                 break;
             case "cloudflare":
-                execSync("wrangler pages publish ./ --project-name=my-project", { stdio: "inherit" });
+                execSync(`${useNpx}wrangler pages publish ./ --project-name=my-project`, { stdio: "inherit" });
                 break;
             case "render":
                 console.log("⚠️ Render deploys automatically on Git push.");
                 break;
             case "surge":
-                execSync("surge ./", { stdio: "inherit" });
+                execSync(`${useNpx}surge ./`, { stdio: "inherit" });
                 break;
             case "railway":
-                execSync("railway up", { stdio: "inherit" });
+                execSync(`${useNpx}railway up`, { stdio: "inherit" });
                 break;
             case "koyeb":
-                execSync("koyeb deploy", { stdio: "inherit" });
+                execSync(`${useNpx}koyeb deploy`, { stdio: "inherit" });
                 break;
             default:
                 console.log("❌ Unsupported platform.");
