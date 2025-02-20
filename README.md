@@ -69,44 +69,26 @@ DeployEase provides a simple command to deploy your frontend projects:
 deployease deploy
 ```  
 
-### **Supported Deployment Platforms**  
-DeployEase supports the following free hosting platforms:  
-✅ **Netlify**  
-✅ **Vercel**  
-✅ **Firebase**  
-✅ **GitHub Pages**  
-✅ **Cloudflare Pages**  
-✅ **Render**  
-✅ **Surge.sh**  
-✅ **Railway**  
-✅ **Koyeb**  
+### **Current Deployment Support**  
+⚠️ **For now, DeployEase can only deploy to Vercel.** We are actively working to support all other platforms soon! Stay tuned for updates.  
 
 ---
 
 ## **Deployment Guide**  
 
 ### **🔹 Deploying Your Project**  
-If a configuration file (`netlify.toml`, `vercel.json`, `firebase.json`, etc.) is found, DeployEase will automatically detect and deploy to the corresponding platform.  
+If a configuration file (`vercel.json`) is found, DeployEase will automatically detect and deploy to Vercel.  
 
-If no configuration is found, you'll be prompted to choose a platform:  
+If no configuration is found, you'll be prompted to confirm deployment to Vercel.  
 ```sh
-Select a deployment platform:
-1. Netlify
-2. Vercel
-3. Firebase
-4. GitHub Pages
-5. Cloudflare Pages
-6. Render
-7. Surge.sh
-8. Railway
-9. Koyeb
+Deploying to Vercel...
 ```
-After selection, deployment starts immediately.
+Deployment starts immediately.
 
 ---
 
 ### **🔹 Manual Deployment**  
-To manually specify a platform, use:  
+To manually specify a platform (once supported), use:  
 ```sh
 deployease deploy --platform <platform-name>
 ```  
@@ -118,7 +100,7 @@ deployease deploy --platform vercel
 ---
 
 ### **🔹 Listing Deployed Projects**  
-To view all deployed projects across platforms, run:  
+To view all deployed projects across platforms (once available), run:  
 ```sh
 deployease list-projects
 ```  

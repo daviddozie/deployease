@@ -1,9 +1,10 @@
 {
   "name": "deployease",
-  "version": "3.2.6",
+  "version": "5.4.8",
   "description": "Deploy frontend apps easily",
   "scripts": {
-    "postinstall": "chmod +x ./bin/deployease.js"
+    "postinstall": "chmod +x ./bin/deployease.js",
+    "deploy": "gh-pages -d build"
   },
   "preferGlobal": true,
   "keywords": [
