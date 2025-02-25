@@ -208,49 +208,87 @@ function deploy() {
         return;
     }
     
-    if(platform === "render"){
-        console.log("\n 📢 Render Deployment Requires Git Push");
-        console.log("⚠️ Ensure this project is currently linked to a GitHub repository connected to Render");
-        console.log("Commit and Push your changes to deploy");
-        
-        try{
-          execSync("git rev-parse --is-inside-work-tree", {stdio: "ignore"});
-          console.log("✅ Git Repository Detected in thuis project" );
-          const status = execSync("git status --porcelain").toString().trim();
-          
-          if(status){
-            console.log("⚙️ Uncommited Changes Detected. Commiting....");
-            execSync("git add . && git commit -m 'deploying to render using deployease'", {stdio: "ignore"});
-            console.log("Automatically Commited Changes.....");
-          }
-            console.log("🦾Pushing to GitHub Repository......");
-            execSync("git push", {stdio: "inherit"})
-            console.log("✅ Successfully pushed to GitHub. Render will automatically deploy......");
-        } catch(error){
-          console.log("An Error Occurrd")
+    if (platform === "render") {
+    console.log("\n 📢 Render Deployment Requires this project git repository to be connected to Render");
+    console.log("\n Follow these steps to continue:");
+    console.log("1. Go to https://dashboard.render.com/ and log in.");
+    console.log("2. Click 'New' and select 'Web Service'.");
+    console.log("3. Set the build command (if applicable) and environment variables.");
+    console.log("4. Connect your GitHub repository and complete the setup.");
+    console.log("5. Click 'Create Web Service' and wait for the first deployment.");
+    console.log("6. Once done, return here and run the script again.\n");
+
+    try {
+        execSync("git rev-parse --is-inside-work-tree", { stdio: "ignore" });
+        console.log("✅ Git Repository Detected.");
+
+        const remoteOutput = execSync("git remote -v").toString().trim();
+        if (!remoteOutput) {
+            console.error("❌ No remote repository detected. Please connect this repo to GitHub first.");
+            process.exit(1);
         }
-        
-        return;
+
+        console.log("🔄 Checking for uncommitted changes...");
+        const status = execSync("git status --porcelain").toString().trim();
+
+        if (status) {
+            console.log("⚠️ Uncommitted changes detected.");
+            const confirmCommit = global.readline.question("Do you want to commit and push them? (yes/no): ").trim().toLowerCase();
+
+            if (confirmCommit === "yes") {
+                console.log("⚙️ Committing changes...");
+                execSync("git add . && git commit -m 'deploying to Render using DeployEase'", { stdio: "ignore" });
+                console.log("✅ Changes committed.");
+            } else {
+                console.log("❌ Deployment aborted. Please commit your changes manually.");
+                process.exit(1);
+            }
+        }
+
+        console.log("🦾 Pushing to GitHub...");
+        execSync("git push", { stdio: "inherit" });
+
+        console.log("✅ Successfully pushed to GitHub. Render will automatically deploy the changes.");
+    } catch (error) {
+        //console.error("❌ An error occurred:", error.message);
+        process.exit(1);
     }
+
+    return;
+}
     
     if (platform === "cloudflare") {
-        console.log("⚙️ Deploying to Cloudflare Pages...");
-    
-        const entryFile = "dist/index.js";
-        if (!fs.existsSync(entryFile)) {
-            console.error(`❌ Missing entry file: ${entryFile}. Please build your project first.`);
-            process.exit(1);
-        }
-    
-        try {
-            console.log("🚀 Deploying with wrangler...");
-            execSync(`wrangler deploy ${entryFile}`, { stdio: "inherit" });
-            console.log("🎉 Successfully deployed to Cloudflare Pages!");
-        } catch (error) {
-            console.error(`❌ Cloudflare Pages deployment failed: ${error.message}`);
-            process.exit(1);
-        }
+    console.log("⚙️ Deploying to Cloudflare...");
+
+    let isWorker = false;
+    if (fs.existsSync("wrangler.toml")) {
+        const wranglerConfig = fs.readFileSync("wrangler.toml", "utf8");
+        isWorker = /main\s*=/.test(wranglerConfig); // Check if it's a Worker project
     }
+
+    try {
+        if (isWorker) {
+            console.log("🚀 Deploying to Cloudflare Workers...");
+            execSync("wrangler deploy", { stdio: "inherit" });
+        } else {
+            console.log("\n📢 This project seems to be for Cloudflare Pages.");
+            const directory = global.readline.question("Enter the directory to publish (default: ./public): ").trim() || "./public";
+
+            if (!fs.existsSync(directory)) {
+                console.error(`❌ The directory '${directory}' does not exist.`);
+                process.exit(1);
+            }
+
+            console.log(`🚀 Deploying to Cloudflare Pages from '${directory}'...`);
+            execSync(`wrangler pages publish ${directory}`, { stdio: "inherit" });
+        }
+
+        console.log("🎉 Successfully deployed to Cloudflare!");
+    } catch (error) {
+        console.error(`❌ Cloudflare deployment failed: ${error.message}`);
+        process.exit(1);
+    }
+}
     
     
 
