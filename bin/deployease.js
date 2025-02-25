@@ -214,7 +214,7 @@ function deploy() {
         console.log("Commit and Push your changes to deploy");
         
         try{
-          existsSync("git rev-parse --is-inside-work-tree", {stdio: "ignore"});
+          execSync("git rev-parse --is-inside-work-tree", {stdio: "ignore"});
           console.log("✅ Git Repository Detected in thuis project" );
           const status = execSync("git status --porcelain").toString().trim();
           
@@ -226,6 +226,8 @@ function deploy() {
             console.log("🦾Pushing to GitHub Repository......");
             execSync("git push", {stdio: "inherit"})
             console.log("✅ Successfully pushed to GitHub. Render will automatically deploy......");
+        } catch(error){
+          console.log("An Error Occurrd")
         }
         
         return;
