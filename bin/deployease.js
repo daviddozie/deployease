@@ -210,8 +210,24 @@ function deploy() {
     
     if(platform === "render"){
         console.log("\n 📢 Render Deployment Requires Git Push");
-        console.log("✅ Ensure this project is currently linked to a GitHub repository oonnected to Render");
+        console.log("⚠️ Ensure this project is currently linked to a GitHub repository connected to Render");
         console.log("Commit and Push your changes to deploy");
+        
+        try{
+          existsSync("git rev-parse --is-inside-work-tree", {stdio: "ignore"});
+          console.log("✅ Git Repository Detected in thuis project" );
+          const status = execSync("git status --porcelain").toString().trim();
+          
+          if(status){
+            console.log("⚙️ Uncommited Changes Detected. Commiting....");
+            execSync("git add . && git commit -m 'deploying to render using deployease'", {stdio: "ignore"});
+            console.log("Automatically Commited Changes.....");
+          }
+            console.log("🦾Pushing to GitHub Repository......");
+            execSync("git push", {stdio: "inherit"})
+            console.log("✅ Successfully pushed to GitHub. Render will automatically deploy......");
+        }
+        
         return;
     }
     
