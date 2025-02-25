@@ -172,7 +172,8 @@ function deploy() {
         "cloudflare": "wrangler",
         "railway": "railway",
         "koyeb": "koyeb",
-        "github": "gh-pages"
+        "github": "gh-pages",
+        "render": null
     };
     
     if (platform === "github") {
@@ -182,7 +183,7 @@ function deploy() {
                 console.log("📦 Installing gh-pages...");
                 execSync("npm install gh-pages", { stdio: "inherit" });
             }
-    
+            
             const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
             if (!packageJson.scripts || !packageJson.scripts.deploy) {
                 console.log("⚙️ Adding deploy script to package.json...");
@@ -206,7 +207,14 @@ function deploy() {
         }
         return;
     }
-
+    
+    if(platform === "render"){
+        console.log("\n 📢 Render Deployment Requires Git Push");
+        console.log("✅ Ensure this project is currently linked to a GitHub repository oonnected to Render");
+        console.log("Commit and Push your changes to deploy");
+        return;
+    }
+    
     if (platform === "cloudflare") {
         console.log("⚙️ Deploying to Cloudflare Pages...");
     

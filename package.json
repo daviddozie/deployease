@@ -19,7 +19,9 @@
   "bin": {
     "deployease": "./bin/deployease.js"
   },
-  "dependencies": {},
+  "dependencies": {
+    "readline-sync": "^1.4.10"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/daviddozie/deployease"
