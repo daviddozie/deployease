@@ -1,6 +1,6 @@
 {
   "name": "deployease",
-  "version": "5.4.9",
+  "version": "5.4.10",
   "description": "Deploy frontend apps easily",
   "scripts": {
     "postinstall": "chmod +x ./bin/deployease.js",
