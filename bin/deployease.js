@@ -47,6 +47,37 @@ function createWranglerConfig() {
 name = "my-cloudflare-project"
 type = "javascript"
 main = "dist/index.js"
+    // Vercel deployment block
+    if (platform === "vercel") {
+        console.log("⚙️ Deploying to Vercel...");
+        try {
+            // Build step if available
+            const packageJson = fs.existsSync("package.json") ? JSON.parse(fs.readFileSync("package.json", "utf8")) : {};
+            if (packageJson.scripts && packageJson.scripts.build) {
+                console.log("⚙️ Building project...");
+                execSync("npm run build", { stdio: "inherit" });
+            }
+            // Check if project is linked to Vercel
+            let linked = false;
+            try {
+                execSync("vercel whoami", { stdio: "ignore" });
+                linked = true;
+            } catch {
+                linked = false;
+            }
+            if (!linked) {
+                console.log("🔗 Linking project to Vercel...");
+                execSync("vercel link", { stdio: "inherit" });
+            }
+            // Deploy
+            console.log("🚀 Running vercel deploy...");
+            execSync("vercel deploy --prod", { stdio: "inherit" });
+            console.log("🎉 Successfully deployed to Vercel!");
+        } catch (error) {
+            console.error("❌ Vercel deployment failed: " + error.message);
+            process.exit(1);
+        }
+        return;
 compatibility_date = "2025-02-20"
 `;
             fs.writeFileSync(wranglerTomlPath, wranglerConfig);
