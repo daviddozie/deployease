@@ -36,18 +36,25 @@ function installCLI(tool) {
     }
 }
 
-const wranglerTomlPath = "wrangler.toml";
-
-if (!fs.existsSync(wranglerTomlPath)) {
-    console.log("⚠️ Missing wrangler.toml. Creating a default configuration...");
-    const wranglerConfig = `
+function createWranglerConfig() {
+    const wranglerTomlPath = "wrangler.toml";
+    if (!fs.existsSync(wranglerTomlPath)) {
+        const useWorkers = global.readline.question("Do you want to deploy to Cloudflare Workers? (yes/no): ").trim().toLowerCase() === "yes";
+        
+        if (useWorkers) {
+            console.log("⚙️ Creating Cloudflare Workers configuration...");
+            const wranglerConfig = `
 name = "my-cloudflare-project"
 type = "javascript"
 main = "dist/index.js"
 compatibility_date = "2025-02-20"
 `;
-    fs.writeFileSync(wranglerTomlPath, wranglerConfig);
-    console.log("✔️ Created wrangler.toml!");
+            fs.writeFileSync(wranglerTomlPath, wranglerConfig);
+            console.log("✔️ Created wrangler.toml!");
+            return true;
+        }
+    }
+    return fs.existsSync(wranglerTomlPath);
 }
 
 
@@ -260,18 +267,14 @@ function deploy() {
     if (platform === "cloudflare") {
     console.log("⚙️ Deploying to Cloudflare...");
 
-    let isWorker = false;
-    if (fs.existsSync("wrangler.toml")) {
-        const wranglerConfig = fs.readFileSync("wrangler.toml", "utf8");
-        isWorker = /main\s*=/.test(wranglerConfig); // Check if it's a Worker project
-    }
+    let isWorker = createWranglerConfig();
 
     try {
         if (isWorker) {
             console.log("🚀 Deploying to Cloudflare Workers...");
             execSync("wrangler deploy", { stdio: "inherit" });
         } else {
-            console.log("\n📢 This project seems to be for Cloudflare Pages.");
+            console.log("\n📢 Deploying to Cloudflare Pages...");
             const directory = global.readline.question("Enter the directory to publish (default: ./public): ").trim() || "./public";
 
             if (!fs.existsSync(directory)) {

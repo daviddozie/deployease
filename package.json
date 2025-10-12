@@ -1,6 +1,6 @@
 {
   "name": "deployease",
-  "version": "5.4.11",
+  "version": "5.4.12",
   "description": "Deploy frontend apps easily",
   "scripts": {
     "deploy": "gh-pages -d build"
