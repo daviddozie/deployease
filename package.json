@@ -1,9 +1,8 @@
 {
   "name": "deployease",
-  "version": "5.4.10",
+  "version": "5.4.11",
   "description": "Deploy frontend apps easily",
   "scripts": {
-    "postinstall": "chmod +x ./bin/deployease.js",
     "deploy": "gh-pages -d build"
   },
   "preferGlobal": true,
@@ -17,13 +16,13 @@
   "author": "David Mgbede",
   "license": "ISC",
   "bin": {
-    "deployease": "./bin/deployease.js"
+    "deployease": "bin/deployease.js"
   },
   "dependencies": {
     "readline-sync": "^1.4.10"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/daviddozie/deployease"
+    "url": "git+https://github.com/daviddozie/deployease.git"
   }
 }
