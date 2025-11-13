@@ -4,8 +4,12 @@
   "main": "src/index.js",
   "description": "Deploy frontend apps easily",
   "scripts": {
-    "deploy": "gh-pages -d build",
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix",
+    "deploy:local": "node bin/deployease.js deploy"
   },
   "preferGlobal": true,
   "keywords": [
@@ -25,7 +29,8 @@
   },
   "devDependencies": {
     "jest": "^29.0.0",
-    "@types/node": "^20.0.0"
+    "@types/node": "^20.0.0",
+    "eslint": "^8.0.0"
   },
   "repository": {
     "type": "git",

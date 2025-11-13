@@ -82,30 +82,26 @@ function selectFromList(title, options) {
     throw new Error('options must be a non-empty array');
   }
 
-  try {
-    ensureReadlineSync();
+  ensureReadlineSync();
 
-    while (true) {
-      console.log(`\n${title}`);
-      options.forEach((opt, i) => {
-        console.log(`${i + 1}. ${opt}`);
-      });
+  for (;;) {
+    console.log(`\n${title}`);
+    options.forEach((opt, i) => {
+      console.log(`${i + 1}. ${opt}`);
+    });
 
-      const answer = global.readline.question('\nEnter the number of your choice: ').trim();
-      const idx = parseInt(answer, 10);
+    const answer = global.readline.question('\nEnter the number of your choice: ').trim();
+    const idx = parseInt(answer, 10);
 
-      if (!Number.isNaN(idx) && idx >= 1 && idx <= options.length) {
-        return options[idx - 1];
-      }
-
-      // allow selecting by exact text match (case-insensitive)
-      const byText = options.find(o => o.toLowerCase() === (answer || '').toLowerCase());
-      if (byText) return byText;
-
-      console.log('❌ Invalid choice. Please enter a valid number or exact option text.');
+    if (!Number.isNaN(idx) && idx >= 1 && idx <= options.length) {
+      return options[idx - 1];
     }
-  } catch (err) {
-    throw err;
+
+    // allow selecting by exact text match (case-insensitive)
+    const byText = options.find(o => o.toLowerCase() === (answer || '').toLowerCase());
+    if (byText) return byText;
+
+    console.log('❌ Invalid choice. Please enter a valid number or exact option text.');
   }
 }
 

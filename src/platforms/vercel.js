@@ -87,7 +87,7 @@ class VercelPlatform extends Platform {
       }
 
       const out = res.output || '';
-      const urlMatch = out.match(/https?:\/\/[^\s\)]+/i);
+  const urlMatch = out.match(/https?:\/\/[^\s)]+/i);
       const url = urlMatch ? urlMatch[0] : '';
 
       logger.success('Vercel deploy completed' + (url ? ` — ${url}` : ''));

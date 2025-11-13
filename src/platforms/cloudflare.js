@@ -37,7 +37,7 @@ class CloudflarePlatform extends Platform {
       if (useWorkers) {
         logger.step('Creating Cloudflare Workers configuration...');
 
-        const wranglerConfig = `name = "my-cloudflare-project"\ntype = "javascript"\nmain = "dist/index.js"\ncompatibility_date = "2025-02-20"\n`;
+        const wranglerConfig = 'name = "my-cloudflare-project"\ntype = "javascript"\nmain = "dist/index.js"\ncompatibility_date = "2025-02-20"\n';
 
         fs.writeFileSync('wrangler.toml', wranglerConfig);
         logger.success('✔️ Created wrangler.toml!');

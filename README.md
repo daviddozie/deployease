@@ -79,6 +79,27 @@ Run it with:
 npm run deploy
 ```
 
+## Architecture
+
+DeployEase uses a modular architecture:
+- `src/core/` - Core functionality (detection, auth, installation)
+- `src/platforms/` - Platform-specific implementations  
+- `src/utils/` - Shared utilities
+- `tests/` - Unit and integration tests
+
+## Development
+
+Run tests:
+```sh
+npm test
+```
+
+Add new platform:
+1. Create class in `src/platforms/yourplatform.js` extending Platform
+2. Implement required methods (detect, authenticate, deploy)
+3. Add to `src/platforms/index.js`
+4. Add tests
+
 ---
 
 ## **Usage**  

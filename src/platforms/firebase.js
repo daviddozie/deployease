@@ -91,7 +91,7 @@ class FirebasePlatform extends Platform {
 
       // firebase deploy outputs URLs to stdout; try to parse
       const out = res.output || '';
-      const urlMatch = out.match(/https?:\/\/[^\s\)]+/i);
+  const urlMatch = out.match(/https?:\/\/[^\s)]+/i);
       const url = urlMatch ? urlMatch[0] : '';
 
       logger.success('Firebase deploy completed' + (url ? ` — ${url}` : ''));

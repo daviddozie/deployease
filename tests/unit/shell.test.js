@@ -37,7 +37,7 @@ describe('execCommand', () => {
 describe('isCommandInstalled', () => {
   afterEach(() => jest.resetAllMocks());
 
-  test("returns true for 'node' when version check succeeds", () => {
+  test('returns true for \'node\' when version check succeeds', () => {
     child_process.execSync.mockImplementation((cmd) => {
       if (String(cmd).includes('node --version')) return 'v16.0.0';
       if (String(cmd).includes('node version')) return 'v16.0.0';
@@ -48,7 +48,7 @@ describe('isCommandInstalled', () => {
     expect(shell.isCommandInstalled('node')).toBe(true);
   });
 
-  test("returns false for a fake CLI 'fakecli123'", () => {
+  test('returns false for a fake CLI \'fakecli123\'', () => {
     child_process.execSync.mockImplementation(() => { throw new Error('not found'); });
     expect(shell.isCommandInstalled('fakecli123')).toBe(false);
   });

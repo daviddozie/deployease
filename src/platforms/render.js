@@ -63,18 +63,20 @@ class RenderPlatform extends Platform {
 
       // Ask for commit message
       const defaultMsg = 'deployease: deploy';
-      const message = prompts.askQuestion('Commit message', defaultMsg).trim() || defaultMsg;
+  const message = prompts.askQuestion('Commit message', defaultMsg).trim() || defaultMsg;
 
-      logger.step('Staging changes...');
-      const addRes = shell.execCommand('git add -A');
+  logger.step('Staging changes...');
+  const addRes = shell.execCommand('git add -A');
       if (!addRes.success) {
         logger.error('❌ git add failed: ' + (addRes.error || addRes.output || 'unknown'));
         return { success: false, error: 'git add failed' };
       }
 
-      logger.step('Committing...');
-      // Use stdio: inherit so commit hooks and user prompts (if any) can run
-      const commitRes = shell.execCommand(`git commit -m "${message.replace(/"/g, '\\"')}"`, { execOptions: { stdio: 'inherit' } });
+  logger.step('Committing...');
+  // Use stdio: inherit so commit hooks and user prompts (if any) can run
+  // Prepare a shell-safe quoted message by escaping any double-quotes at runtime
+  const safeMsg = message.replace(/"/g, '\\"');
+  const commitRes = shell.execCommand('git commit -m "' + safeMsg + '"', { execOptions: { stdio: 'inherit' } });
       if (!commitRes.success) {
         logger.error('❌ git commit failed: ' + (commitRes.error || commitRes.output || 'unknown'));
         return { success: false, error: 'git commit failed' };
@@ -101,12 +103,12 @@ class RenderPlatform extends Platform {
     else if (/bitbucket\.org/.test(remoteInfo)) host = 'Bitbucket';
 
     logger.info('\n🔗 Next steps to connect your repository to Render:');
-    logger.info(`1. Go to https://dashboard.render.com and sign in or create an account.`);
-    logger.info(`2. Click \"New+\" → Select \"Web Service\".`);
-    logger.info(`3. Choose ${host} as the provider and authorize Render to access your repository (if required).`);
+    logger.info('1. Go to https://dashboard.render.com and sign in or create an account.');
+  logger.info('2. Click "New+" → Select "Web Service".');
+  logger.info(`3. Choose ${host} as the provider and authorize Render to access your repository (if required).`);
     logger.info('4. Select the repository you just pushed and pick the branch you want Render to deploy (e.g. main).');
     logger.info('5. Set the build command (if your project needs one) and the publish directory (e.g. build or public).');
-    logger.info('6. Click \"Create Web Service\" — Render will build and deploy automatically from future pushes.');
+  logger.info('6. Click "Create Web Service" — Render will build and deploy automatically from future pushes.');
 
     logger.info('\n✅ If you prefer to trigger a deploy from the Render dashboard, simply follow the steps above and then use the dashboard to start the first deploy.');
 

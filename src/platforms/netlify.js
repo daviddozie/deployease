@@ -69,7 +69,7 @@ class NetlifyPlatform extends Platform {
 
       // Try to parse a URL from output
       const out = res.output || '';
-      const urlMatch = out.match(/https?:\/\/[^\s\)]+/i);
+  const urlMatch = out.match(/https?:\/\/[^\s)]+/i);
       const url = urlMatch ? urlMatch[0] : '';
 
       logger.success('Netlify deploy completed' + (url ? ` — ${url}` : ''));
