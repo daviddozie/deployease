@@ -1,5 +1,6 @@
 const logger = require('../utils/logger');
 const shell = require('../utils/shell');
+const { execSync } = require('child_process');
 
 /**
  * Install a CLI tool globally using npm.
@@ -14,21 +15,31 @@ function installCLI(toolName) {
     logger.error('installCLI: invalid tool name');
     return { success: false, useNpx: false };
   }
-
   logger.step(`Installing ${toolName} CLI...`);
 
-  // Attempt global install
-  const cmd = `npm install -g ${toolName}`;
-  const res = shell.execCommand(cmd, { verbose: false });
+  // Map common tool names to their npm package names (handles scoped packages)
+  const packageMap = {
+    'railway': '@railway/cli',
+    'netlify': 'netlify-cli',
+    'vercel': 'vercel',
+    'firebase': 'firebase-tools',
+    'wrangler': 'wrangler',
+    'koyeb': '@koyeb/koyeb-cli',
+    'gh-pages': 'gh-pages'
+  };
 
-  if (res.success) {
-    logger.success(`${toolName} installed successfully!`);
+  const packageName = packageMap[toolName] || toolName;
+
+  // Attempt global install using execSync to surface immediate errors
+  try {
+    execSync(`npm install -g ${packageName}`, { stdio: 'inherit' });
+    logger.success(`${packageName} installed successfully!`);
     return { success: true, useNpx: false };
+  } catch (err) {
+    // Global install failed — fall back to using npx
+    logger.error(`Failed to install ${packageName} globally. Will try with npx instead.`);
+    return { success: false, useNpx: true };
   }
-
-  // Global install failed — fall back to using npx
-  logger.error(`Failed to install ${toolName} globally. Trying with npx...`);
-  return { success: false, useNpx: true };
 }
 
 /**

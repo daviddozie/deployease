@@ -1,6 +1,7 @@
 const fs = require('fs');
 const Platform = require('./base');
 const logger = require('../utils/logger');
+const prompts = require('../utils/prompts');
 const installer = require('../core/installer');
 const authenticator = require('../core/authenticator');
 const shell = require('../utils/shell');
@@ -32,6 +33,39 @@ class NetlifyPlatform extends Platform {
       return exists;
     } catch (err) {
       logger.error('detect error: ' + (err && err.message ? err.message : String(err)));
+      return false;
+    }
+  }
+
+  async configure() {
+    try {
+      // Ask for publish directory with smart defaults
+      const candidates = ['build', 'dist', 'out', 'public'];
+      let defaultDir = 'public';
+      for (const d of candidates) {
+        if (fs.existsSync(d)) {
+          defaultDir = d;
+          break;
+        }
+      }
+
+      const directory = prompts.askQuestion('Which directory contains your built files?', `./${defaultDir}`) || `./${defaultDir}`;
+      if (!fs.existsSync(directory)) {
+        logger.error(`Publish directory '${directory}' does not exist. Please build your project first.`);
+        return false;
+      }
+
+      const files = fs.readdirSync(directory).filter(f => f !== '.gitkeep');
+      if (!files || files.length === 0) {
+        logger.error(`Publish directory '${directory}' is empty. Please build your project first.`);
+        return false;
+      }
+
+      this.publishDir = directory;
+      logger.info(`Will deploy Netlify from '${this.publishDir}'`);
+      return true;
+    } catch (err) {
+      logger.error('Configure error: ' + (err && err.message ? err.message : String(err)));
       return false;
     }
   }

@@ -29,11 +29,35 @@ class GithubPlatform extends Platform {
 
   async configure() {
     try {
+      // Determine smart default for build dir
+      const candidates = ['build', 'dist', 'out', 'public'];
+      let defaultDir = 'build';
+
+      // If package.json has a deploy script referencing a directory, use that
+      if (fs.existsSync('package.json')) {
+        try {
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')) || {};
+          if (pkg.scripts && pkg.scripts.deploy) {
+            const m = pkg.scripts.deploy.match(/-d\s+([^\s]+)/);
+            if (m && m[1]) defaultDir = m[1];
+          }
+        } catch (e) {
+          // ignore parse errors and continue
+        }
+      }
+
+      for (const d of candidates) {
+        if (fs.existsSync(d)) {
+          defaultDir = d;
+          break;
+        }
+      }
+
       // Ask for build dir
-      const dir = prompts.askQuestion('Enter build directory to publish', 'build') || 'build';
+      const dir = prompts.askQuestion('Enter build directory to publish', defaultDir) || defaultDir;
       this.buildDir = dir;
 
-      // Ensure gh-pages is installed locally
+  // Ensure gh-pages is installed locally
       const ghPath = 'node_modules/gh-pages';
       if (!fs.existsSync(ghPath)) {
         logger.step('Installing gh-pages...');
@@ -44,10 +68,10 @@ class GithubPlatform extends Platform {
         }
       }
 
-      // Ensure package.json has deploy script
+      // Ensure package.json present and update deploy script if needed
       if (!fs.existsSync('package.json')) {
-        logger.error('package.json not found — cannot add deploy script');
-        return false;
+        logger.warn('package.json not found — cannot add deploy script, but will continue (static site deploy assumed)');
+        return true;
       }
 
       const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')) || {};
@@ -57,9 +81,17 @@ class GithubPlatform extends Platform {
         pkg.scripts.deploy = `gh-pages -d ${this.buildDir}`;
         fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
       } else {
-        // If deploy exists, ensure it references the chosen buildDir (best effort)
+        // If deploy exists, try to update or warn
         if (!pkg.scripts.deploy.includes(this.buildDir)) {
-          logger.warn('Existing deploy script does not reference chosen build dir — leaving unchanged');
+          // If deploy script contains -d flag, try to replace it
+          const replaced = pkg.scripts.deploy.replace(/(-d\s+)([^\s]+)/, `$1${this.buildDir}`);
+          if (replaced !== pkg.scripts.deploy) {
+            logger.step('Updating deploy script to reference chosen build directory...');
+            pkg.scripts.deploy = replaced;
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          } else {
+            logger.warn('Existing deploy script does not reference chosen build dir — leaving unchanged');
+          }
         }
       }
 

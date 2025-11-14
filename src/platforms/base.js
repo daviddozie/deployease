@@ -1,5 +1,6 @@
 const fs = require('fs');
 const logger = require('../utils/logger');
+const prompts = require('../utils/prompts');
 const shell = require('../utils/shell');
 
 class Platform {
@@ -24,26 +25,37 @@ class Platform {
 
   async build() {
     try {
+      // Check if package.json exists
       if (!fs.existsSync('package.json')) {
-        logger.info('No package.json found — skipping build');
+        logger.info('No package.json found, skipping build step');
         return { success: true };
       }
 
-      const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-      if (!pkg.scripts || !pkg.scripts.build) {
-        logger.info('No build script found in package.json — skipping build');
-        return { success: true };
+      const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+
+      // Check if build script exists
+      if (!packageJson.scripts || !packageJson.scripts.build) {
+        const shouldBuild = prompts.askYesNo(
+          'No build script found in package.json. Skip build step?',
+          true
+        );
+
+        if (shouldBuild) {
+          logger.warn('Skipping build. Make sure your files are ready to deploy.');
+          return { success: true };
+        }
       }
 
-      logger.step('Running build script (npm run build)...');
-      const res = shell.execCommand('npm run build', { verbose: true, execOptions: { stdio: 'inherit' } });
+      // Run build
+      logger.step('Running build...');
+      const result = shell.execCommand('npm run build', { verbose: true });
 
-      if (!res.success) {
-        logger.error(`Build failed: ${res.error || 'unknown error'}`);
-        return { success: false, error: res.error || 'build failed' };
+      if (!result.success) {
+        logger.error('Build failed: ' + (result.error || 'unknown'));
+        return { success: false, error: 'Build failed' };
       }
 
-      logger.success('Build completed successfully');
+      logger.success('Build completed!');
       return { success: true };
     } catch (err) {
       logger.error(`Build error: ${err && err.message ? err.message : String(err)}`);

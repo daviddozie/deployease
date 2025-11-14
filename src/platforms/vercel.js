@@ -1,6 +1,7 @@
 const fs = require('fs');
 const Platform = require('./base');
 const logger = require('../utils/logger');
+const prompts = require('../utils/prompts');
 const installer = require('../core/installer');
 const authenticator = require('../core/authenticator');
 const shell = require('../utils/shell');
@@ -54,7 +55,8 @@ class VercelPlatform extends Platform {
       const res = shell.execCommand(whoamiCmd, { verbose: false });
       if (res.success) {
         logger.info('Project already linked to Vercel');
-        return true;
+        // still ask for a deploy directory so deploy can use a known target
+        // fall through to directory selection below
       }
 
       logger.info('🔗 Linking project to Vercel...');
@@ -66,6 +68,37 @@ class VercelPlatform extends Platform {
       }
 
       logger.success('Project linked to Vercel');
+      // continue to choose a publish directory
+    } catch (err) {
+      logger.error('Configure error: ' + (err && err.message ? err.message : String(err)));
+      return false;
+    }
+
+    try {
+      // Ask for publish directory with smart defaults
+      const candidates = ['build', 'dist', 'out', 'public'];
+      let defaultDir = 'public';
+      for (const d of candidates) {
+        if (fs.existsSync(d)) {
+          defaultDir = d;
+          break;
+        }
+      }
+
+      const directory = prompts.askQuestion('Which directory contains your built files?', `./${defaultDir}`) || `./${defaultDir}`;
+      if (!fs.existsSync(directory)) {
+        logger.error(`Publish directory '${directory}' does not exist. Please build your project first.`);
+        return false;
+      }
+
+      const files = fs.readdirSync(directory).filter(f => f !== '.gitkeep');
+      if (!files || files.length === 0) {
+        logger.error(`Publish directory '${directory}' is empty. Please build your project first.`);
+        return false;
+      }
+
+      this.publishDir = directory;
+      logger.info(`Will deploy Vercel from '${this.publishDir}'`);
       return true;
     } catch (err) {
       logger.error('Configure error: ' + (err && err.message ? err.message : String(err)));

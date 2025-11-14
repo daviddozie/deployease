@@ -8,6 +8,7 @@ class RenderPlatform extends Platform {
   constructor() {
     super('render');
     this.cliCommand = null; // no dedicated CLI
+    this.gitBranch = null;
   }
 
   // detect by presence of render.yaml (or render.yml)
@@ -24,95 +25,128 @@ class RenderPlatform extends Platform {
     return { authenticated: true };
   }
 
-  // Deploy by pushing to git remote. Prompts user to commit local changes.
-  async deploy() {
-    logger.info('📦 Preparing Render deployment (git-based)...');
-
-    // Ensure prompts available
+  async configure() {
+    // Ensure prompts are available
     prompts.ensureReadlineSync();
 
-    // 1) Make sure we're in a git repository
-    const insideRepo = shell.execCommand('git rev-parse --is-inside-work-tree');
-    if (!insideRepo.success) {
-      logger.error('❌ This directory is not a git repository.');
-      logger.info('To deploy to Render you must push a git repository to a remote provider (GitHub/GitLab/Bitbucket).');
-      logger.info('Run these commands to initialize and push:\n- git init\n- git add -A\n- git commit -m "Initial commit"\n- git remote add origin <your-remote-url>\n- git push -u origin <branch>');
-      return { success: false, error: 'Not a git repository' };
-    }
+    try {
+      const hasRenderYaml = fs.existsSync('render.yaml') || fs.existsSync('render.yml');
+      if (!hasRenderYaml) {
+        logger.info('No render.yaml found in repository. To use Render you should create a render.yaml (or connect via the Render dashboard).');
+        logger.info('Quick setup steps:\n1. Go to https://dashboard.render.com and create a new Web Service.\n2. Connect your Git provider (GitHub/GitLab/Bitbucket).\n3. Select the repository and branch, and configure the build & publish settings.');
 
-    // 2) Check for git remotes
-    const remotes = shell.execCommand('git remote -v');
-    if (!remotes.success || !remotes.output || !remotes.output.trim()) {
-      logger.warn('⚠️ No git remote detected.');
-      logger.info('Add a remote that points to your Git host (GitHub/GitLab/Bitbucket) and push the branch. Example:');
-      logger.info('  git remote add origin https://github.com/username/repo.git');
-      logger.info('  git push -u origin main');
-      return { success: false, error: 'No git remote configured' };
-    }
-
-    // 3) Check for uncommitted changes
-    const status = shell.execCommand('git status --porcelain');
-    if (status.success && status.output && status.output.trim()) {
-      logger.warn('⚠️ You have uncommitted changes in your working tree.');
-      const commitNow = prompts.askYesNo('Do you want to create a commit from these changes and continue?', true);
-
-      if (!commitNow) {
-        logger.error('Aborting deployment. Please commit or stash your changes and run this command again.');
-        return { success: false, error: 'Uncommitted changes present' };
+        const connected = prompts.askYesNo('Have you connected this repository to Render (via the dashboard)?', false);
+        if (!connected) {
+          logger.error('Please connect your repository to Render first. See the instructions above.');
+          return { success: false, error: 'Repository not connected to Render' };
+        }
+        // If user says yes, proceed — they likely connected via dashboard
       }
 
-      // Ask for commit message
-      const defaultMsg = 'deployease: deploy';
-  const message = prompts.askQuestion('Commit message', defaultMsg).trim() || defaultMsg;
-
-  logger.step('Staging changes...');
-  const addRes = shell.execCommand('git add -A');
-      if (!addRes.success) {
-        logger.error('❌ git add failed: ' + (addRes.error || addRes.output || 'unknown'));
-        return { success: false, error: 'git add failed' };
+      // 1) Ensure we're inside a git repository
+      const insideRepo = shell.execCommand('git rev-parse --is-inside-work-tree');
+      if (!insideRepo.success) {
+        logger.error('This directory is not a git repository. Initialize a git repo and push it to your Git provider.');
+        logger.info('Example:\n  git init\n  git add -A\n  git commit -m "Initial commit"\n  git remote add origin <your-remote-url>\n  git push -u origin main');
+        return { success: false, error: 'Not a git repository' };
       }
 
-  logger.step('Committing...');
-  // Use stdio: inherit so commit hooks and user prompts (if any) can run
-  // Prepare a shell-safe quoted message by escaping any double-quotes at runtime
-  const safeMsg = message.replace(/"/g, '\\"');
-  const commitRes = shell.execCommand('git commit -m "' + safeMsg + '"', { execOptions: { stdio: 'inherit' } });
-      if (!commitRes.success) {
-        logger.error('❌ git commit failed: ' + (commitRes.error || commitRes.output || 'unknown'));
-        return { success: false, error: 'git commit failed' };
+      // 2) Check for git remotes
+      const remotes = shell.execCommand('git remote -v');
+      if (!remotes.success || !remotes.output || !remotes.output.trim()) {
+        logger.error('No Git remote found. Push your repository to GitHub (or another provider) first.');
+        logger.info('Example:\n  git remote add origin https://github.com/username/repo.git\n  git push -u origin main');
+        return { success: false, error: 'No git remote configured' };
       }
+
+      // 3) Get current branch
+      const branchRes = shell.execCommand('git branch --show-current');
+      if (!branchRes.success) {
+        logger.error('Failed to determine current git branch');
+        return { success: false, error: 'Could not determine git branch' };
+      }
+      const branch = (branchRes.output || '').toString().trim();
+      if (!branch) {
+        logger.error('Could not determine current git branch. Please ensure you are on a branch (not in detached HEAD).');
+        return { success: false, error: 'No current branch' };
+      }
+      this.gitBranch = branch;
+
+      // 4) Check for uncommitted changes
+      const status = shell.execCommand('git status --porcelain');
+      if (status.success && status.output && status.output.trim()) {
+        logger.warn('You have uncommitted changes in your working tree. These should be committed before deploying.');
+        const commitNow = prompts.askYesNo('Do you want to create a commit from these changes and continue?', true);
+
+        if (!commitNow) {
+          logger.error('Aborting. Please commit or stash your changes and run this command again.');
+          return { success: false, error: 'Uncommitted changes present' };
+        }
+
+        // Commit changes with a standard message
+        logger.step('Staging changes...');
+        const addRes = shell.execCommand('git add -A');
+        if (!addRes.success) {
+          logger.error('git add failed: ' + (addRes.error || addRes.output || 'unknown'));
+          return { success: false, error: 'git add failed' };
+        }
+
+        logger.step('Committing...');
+        const message = 'Deploy to Render via DeployEase';
+        const safeMsg = message.replace(/"/g, '\\"');
+        const commitRes = shell.execCommand('git commit -m "' + safeMsg + '"', { execOptions: { stdio: 'inherit' } });
+        if (!commitRes.success) {
+          logger.error('git commit failed: ' + (commitRes.error || commitRes.output || 'unknown'));
+          return { success: false, error: 'git commit failed' };
+        }
+      }
+
+      logger.info(`Ready to deploy branch '${this.gitBranch}' to Render.`);
+      return { success: true };
+    } catch (err) {
+      logger.error('Configure error: ' + (err && err.message ? err.message : String(err)));
+      return { success: false, error: err && err.message ? err.message : String(err) };
     }
+  }
 
-    // 4) Push to remote
-    logger.step('Pushing current branch to remote...');
-    // Use interactive stdio so credentials (if needed) are handled by git
-    const pushRes = shell.execCommand('git push', { execOptions: { stdio: 'inherit' } });
-    if (!pushRes.success) {
-      logger.error('❌ git push failed: ' + (pushRes.error || pushRes.output || 'unknown'));
-      logger.info('If this is the first push, run: git push -u <remote> <branch>');
-      return { success: false, error: 'git push failed' };
+  // Deploy by pushing to git remote. Pushes the configured branch.
+  async deploy() {
+    try {
+      logger.step('Pushing branch to remote...');
+
+      // Determine branch to push
+      let branch = this.gitBranch;
+      if (!branch) {
+        const branchRes = shell.execCommand('git branch --show-current');
+        if (!branchRes.success) {
+          logger.error('Failed to determine current branch for push');
+          return { success: false, error: 'Could not determine git branch' };
+        }
+        branch = (branchRes.output || '').toString().trim();
+      }
+
+      if (!branch) {
+        logger.error('No branch specified to push');
+        return { success: false, error: 'No branch to push' };
+      }
+
+      // Push to origin
+      const pushCmd = `git push origin ${branch}`;
+      const pushRes = shell.execCommand(pushCmd, { execOptions: { stdio: 'inherit' } });
+      if (!pushRes.success) {
+        logger.error('git push failed: ' + (pushRes.error || pushRes.output || 'unknown'));
+        return { success: false, error: pushRes.error || pushRes.output || 'git push failed' };
+      }
+
+      logger.success('✅ Pushed to GitHub successfully!');
+      logger.info('🚀 Render will automatically deploy your changes');
+      logger.info('View status at: https://dashboard.render.com');
+
+      return { success: true, url: 'https://dashboard.render.com' };
+    } catch (err) {
+      logger.error('Deploy error: ' + (err && err.message ? err.message : String(err)));
+      return { success: false, error: err && err.message ? err.message : String(err) };
     }
-
-    logger.success('✅ Code pushed to remote successfully.');
-
-    // 5) Provide Render dashboard connection instructions
-    const remoteInfo = remotes.output || '';
-    let host = 'your Git provider';
-    if (/github\.com/.test(remoteInfo)) host = 'GitHub';
-    else if (/gitlab\.com/.test(remoteInfo)) host = 'GitLab';
-    else if (/bitbucket\.org/.test(remoteInfo)) host = 'Bitbucket';
-
-    logger.info('\n🔗 Next steps to connect your repository to Render:');
-    logger.info('1. Go to https://dashboard.render.com and sign in or create an account.');
-  logger.info('2. Click "New+" → Select "Web Service".');
-  logger.info(`3. Choose ${host} as the provider and authorize Render to access your repository (if required).`);
-    logger.info('4. Select the repository you just pushed and pick the branch you want Render to deploy (e.g. main).');
-    logger.info('5. Set the build command (if your project needs one) and the publish directory (e.g. build or public).');
-  logger.info('6. Click "Create Web Service" — Render will build and deploy automatically from future pushes.');
-
-    logger.info('\n✅ If you prefer to trigger a deploy from the Render dashboard, simply follow the steps above and then use the dashboard to start the first deploy.');
-
-    return { success: true };
   }
 }
 
