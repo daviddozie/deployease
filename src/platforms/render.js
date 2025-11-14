@@ -94,11 +94,13 @@ class RenderPlatform extends Platform {
         logger.step('Committing...');
         const message = 'Deploy to Render via DeployEase';
         const safeMsg = message.replace(/"/g, '\\"');
-        const commitRes = shell.execCommand('git commit -m "' + safeMsg + '"', { execOptions: { stdio: 'inherit' } });
+        const commitRes = shell.execCommand('git commit -m "' + safeMsg + '"', { stdio: 'inherit' });
         if (!commitRes.success) {
           logger.error('git commit failed: ' + (commitRes.error || commitRes.output || 'unknown'));
           return { success: false, error: 'git commit failed' };
         }
+
+        logger.success('✅ Changes committed successfully.');
       }
 
       logger.info(`Ready to deploy branch '${this.gitBranch}' to Render.`);
@@ -132,7 +134,7 @@ class RenderPlatform extends Platform {
 
       // Push to origin
       const pushCmd = `git push origin ${branch}`;
-      const pushRes = shell.execCommand(pushCmd, { execOptions: { stdio: 'inherit' } });
+      const pushRes = shell.execCommand(pushCmd, { stdio: 'inherit' });
       if (!pushRes.success) {
         logger.error('git push failed: ' + (pushRes.error || pushRes.output || 'unknown'));
         return { success: false, error: pushRes.error || pushRes.output || 'git push failed' };
